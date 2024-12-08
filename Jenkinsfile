@@ -4,9 +4,9 @@ pipeline {
         VERSION = "${env.BUILD_ID}"
         AWS_ACCOUNT_ID= credentials('account_id')
         AWS_DEFAULT_REGION="us-east-1"
-        IMAGE_REPO_NAME="image-repo"
+        IMAGE_REPO_NAME="image_repo"
         IMAGE_TAG= "${env.BUILD_ID}"
-        REPOSITORY_URI = "775012328020.dkr.ecr.us-east-1.amazonaws.com/image-repo"
+        REPOSITORY_URI = "775012328020.dkr.ecr.us-east-1.amazonaws.com/image_repo"
     }
     stages {
         
@@ -26,7 +26,7 @@ pipeline {
         stage('Code Qualty Scan') {
 
            steps {
-                  withSonarQubeEnv('sonar-scanner') {
+                  withSonarQubeEnv('sonar_scanner') {
              sh "mvn -f SampleWebApp/pom.xml sonar:sonar"      
                }
             }
