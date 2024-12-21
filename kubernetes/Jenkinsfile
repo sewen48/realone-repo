@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Pull your Terraform scripts from version control
+                checkout scm
+            }
+        }
+        stage('Install Checkov') {
+            steps {
+                // Install Checkov (assuming Python is installed)
+                sh 'pip install checkov --user'
+            }
+        }
+        stage('Checkov Scan') {
+            steps {
+                script {
+                    def scanResult = sh(
+                        script: '~/.local/bin/checkov -d . --quiet --compact --output json',
+                        returnStatus: true
+                    )
+                    
+                    // Fail the pipeline if vulnerabilities are found
+                    if (scanResult != 0) {
+                        error("Checkov found vulnerabilities in the Terraform scripts.")
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline execution completed.'
+        }
+    }
+}
