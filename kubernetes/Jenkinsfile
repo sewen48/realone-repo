@@ -8,7 +8,6 @@ pipeline {
                 sh "pipenv run checkov -d . --use-enforcement-rules -o cli -o junitxml --output-file-path console,results.xml --repo-id realone-repo/kubernetes --branch master"
             }
         }
-                    {
         always {
             echo 'Pipeline execution completed.'
         }
