@@ -1,35 +1,42 @@
 pipeline {
-  agent {
-    kubernetes {
-      yaml '''
-apiVersion: v1
-kind: Pod
-metadata:
-  name: checkov
-spec:
-  containers:
-  - name: checkov
-    image: bridgecrew/checkov:2.0.888
-    command:
-    - cat
-    tty: true
-'''   
-    }
-  }
-  stages {
-    stage('verify version') {
-      steps {
-        container('checkov') {
-          sh 'checkov --version'
+    agent any
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Clone your repository
+                git branch: 'main', url: 'https://github.com/tkibnyusuf/realone-repo.git'
+            }
         }
-      }
-    }
-    stage('check the help') {
-      steps {
-        container('checkov') {
-          sh 'checkov --help'
+        stage('Install Checkov') {
+            steps {
+                // Install Checkov using pip
+                sh 'pip install checkov --user'
+                sh "pipenv run checkov -d . --use-enforcement-rules -o cli -o junitxml --output-file-path console,results.xml --repo-id realone-repo/kubernetes --branch master"
+            }
         }
-      }
+        stage('Run Checkov') {
+            steps {
+                script {
+                    // Run Checkov scan on the 'kubernetes' folder
+                    def scanResult = sh(
+                        script: '~/.local/bin/checkov -d kubernetes --quiet --compact --output cli',
+                        returnStatus: true
+                    )
+                    
+                    // Fail the pipeline if vulnerabilities are detected
+                    if (scanResult != 0) {
+                        error("Checkov found vulnerabilities in the Terraform files within the kubernetes folder.")
+                    }
+                }
+            }
+        }
     }
-  }
+    post {
+        always {
+            echo 'Pipeline execution completed.'
+        }
+        failure {
+            echo 'Checkov scan detected issues. Please address the vulnerabilities.'
+        }
+    }
 }
