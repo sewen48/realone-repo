@@ -3,27 +3,28 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Pull your Terraform scripts from version control
-                checkout scm
+                // Clone the repository
+                git url: 'https://github.com/tkibnyusuf/realone-repo.git', branch: 'main'
             }
         }
         stage('Install Checkov') {
             steps {
-                // Install Checkov (assuming Python is installed)
+                // Install Checkov on the Jenkins agent
                 sh 'pip install checkov --user'
             }
         }
-        stage('Checkov Scan') {
+        stage('Run Checkov Scan') {
             steps {
                 script {
+                    // Scan the Terraform files in the 'kubernetes' directory
                     def scanResult = sh(
-                        script: '~/.local/bin/checkov -d . --quiet --compact --output json',
+                        script: '~/.local/bin/checkov -d kubernetes --quiet --compact',
                         returnStatus: true
                     )
                     
                     // Fail the pipeline if vulnerabilities are found
                     if (scanResult != 0) {
-                        error("Checkov found vulnerabilities in the Terraform scripts.")
+                        error("Checkov detected vulnerabilities in the Terraform scripts located in the kubernetes folder.")
                     }
                 }
             }
@@ -32,6 +33,11 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution completed.'
+        }
+        failure {
+            mail to: 'yusuftaofeek55@gmail.com',
+                 subject: 'Checkov Scan Failed',
+                 body: 'The Jenkins pipeline failed because Checkov detected vulnerabilities in the Terraform scripts. Check the pipeline logs for more details.'
         }
     }
 }
