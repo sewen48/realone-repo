@@ -14,9 +14,8 @@ module "eks" {
     }
   }
   
-
-  cluster_name = "myAppp-eks-cluster"  
-  cluster_version = "1.27"
+  cluster_name = var.myAppp-eks-cluster  
+  cluster_version = var.cluster_version
 
   subnet_ids = module.myAppp-vpc.private_subnets
   vpc_id = module.myAppp-vpc.vpc_id
@@ -33,7 +32,7 @@ module "eks" {
       desired_size = 3
 
       instance_types = ["t2.small"]
-      key_name       = "devopskeypair"
+      key_name       = "zeeKP"
     }
   }
 }
